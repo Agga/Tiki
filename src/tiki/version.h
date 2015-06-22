@@ -1,0 +1,5 @@
+#pragma once
+
+#define TIKI_MAJOR_VERSION 1
+#define TIKI_MINOR_VERSION 0
+#define TIKI_PATCH_VERSION 1
