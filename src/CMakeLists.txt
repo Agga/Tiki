@@ -10,7 +10,7 @@ include( helpers )
 
 #compiler specific settings
 if( WIN32 )
-	include( win )
+	include( windows )
 elseif( APPLE )
 	include( osx )
 else()
