@@ -24,6 +24,7 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} )
 
 #add include directory for generated/ copyied files
 include_directories( ${CMAKE_BINARY_DIR}/generated )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/tiki )
 
 add_subdirectory( tiki )
 add_subdirectory( samples )
