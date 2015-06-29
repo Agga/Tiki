@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/Minimal.h>
+#include <core/Assert.h>
 
 #include <core/Window/Window.h>
 
