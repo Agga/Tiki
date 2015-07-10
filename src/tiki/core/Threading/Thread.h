@@ -1,20 +1,40 @@
 #pragma once
 
+#include <core/Types.h>
 
 namespace tiki
 {
-	struct ThreadHandle;
-	typedef void(*ThreadCallback)(void*);
+	typedef void(*ThreadProc)(void*);
 
-	namespace Thread
+	class Thread
 	{
-		ThreadHandle* create( ThreadCallback callback, void* data );
-		void destroy( ThreadHandle* thread );
+	public:
+		struct ThreadImpl;
 
-		void join(ThreadHandle* thread);
-		void pause(ThreadHandle* thread);
-		void resume(ThreadHandle* thread);
+		Thread();
+		~Thread();
 
-		void setName(ThreadHandle* thread, const char* name);
-	}
+		/*
+		creates a thread in a running state
+			proc -> function that will be executed by the thread
+			data -> data passed to ThreadProc; data is not owned by thread
+			returns true on success
+		 */
+		bool create( ThreadProc proc, void* data );
+		void release();
+
+		/*
+		stalls threadA until the joined threadB terminates
+			- returns true immediately if joined thread already finished
+			- returns false if threadA and threadB are equal
+			- returns false if thread is not valid	
+		 */
+		bool join() const;
+		
+		static void sleep( u64 milliseconds );
+		static u64  getCurrentThreadId();
+		
+	private:
+		ThreadImpl* m_Impl;
+	};
 }

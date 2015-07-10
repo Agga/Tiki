@@ -8,5 +8,3 @@ set( TIKI_WINDOWS True )
 set( TIKI_RENDER_OPENGL True )
 set( TIKI_USE_SDL2 True )
 set( TIKI_ASSERTION True )
-
-

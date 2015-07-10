@@ -1,51 +1,70 @@
 
 #include <core/All.h>
 
+#include <mutex>
 #include <string>
 #include <iostream>
 
-#include <core/Threading/Thread.h>
+std::mutex writeGuard;
 
 void printMe(void* data)
 {
-	tiki::u64 base = *reinterpret_cast<tiki::u64*>(data);
+	int base = *reinterpret_cast<int*>(data);
 
 	for (int x = 0; x < 10; x++)
 	{
+		std::lock_guard<std::mutex> lock(writeGuard);
 		std::cout << base * 10 + x << std::endl;
 	}
 }
+
+void testThreadJoin( void* data )
+{
+	tiki::Thread* thread = reinterpret_cast<tiki::Thread*>( data );
+	if( !thread->join() )
+	{
+		std::lock_guard<std::mutex> lock(writeGuard);
+		std::cout << "thread is not joinable from itself " << tiki::Thread::getCurrentThreadId() << std::endl;
+	}
+}
+
+void testThreadSleep( void* data )
+{
+	{
+		std::lock_guard<std::mutex> lock(writeGuard);
+		std::cout << tiki::Thread::getCurrentThreadId() << "start " << std::endl;
+	}
+
+	tiki::Thread::sleep( 1000 );
+
+	{
+		std::lock_guard<std::mutex> lock(writeGuard);
+		std::cout << tiki::Thread::getCurrentThreadId() << "end " << std::endl;
+	}
+}
+
+#include <Windows.h>
 
 int main(char* args, int argc)
 {
 	using namespace tiki;
 
-	ThreadHandle* threads[10];
-	u64 indices[10];
+	Semaphore sem;
+	sem.obtain();
 
-	for (u64 index = 0; index < 10; index++)
+	Thread threads[10];
+	int indices[10];
+
+	for( int x = 0; x < 10; x++ )
 	{
-		indices[index] = index;
-		threads[index] = Thread::create(printMe, &indices[index]);
+		indices[x] = x;
+		threads[x].create( testThreadSleep, nullptr );
 	}
 
-	for (int x = 0; x < 10; x++)
+	for( int x = 0; x < 10; x++ )
 	{
-		Thread::join(threads[x]);
+		threads[x].join();
 	}
-
-
-	/*WindowSettings settings;
-	Window* window = new Window();
-	if( !window->init( settings ) )
-		return 1;
-
-	while( window->update() )
-	{
-
-	}
-
-	window->release();*/
 
 	return 0;
 }

@@ -1,4 +1,4 @@
-#include <core/Minimal.h>
+#include <core/Config.h>
 
 #if defined(TIKI_USE_SDL2)
 

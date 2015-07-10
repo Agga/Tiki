@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 
 namespace tiki
 {
@@ -19,4 +20,18 @@ namespace tiki
 
 	typedef std::intptr_t intptr;
 	typedef std::uintptr_t uintptr;
+
+	//TODO add constexpr
+	template<typename type>
+	type maxValue()
+	{
+		return std::numeric_limits<type>::max();
+	}
+
+	//TODO add constexpr
+	template<typename type>
+	type minValue()
+	{
+		return std::numeric_limits<type>::min();
+	}
 }
