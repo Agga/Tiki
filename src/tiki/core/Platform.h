@@ -1,6 +1,14 @@
 #pragma once
 
-namespace tiki
-{
-	#define TIKI_DEBUG_BREAK()
-}
+#include <core/Config.h>
+
+#ifdef TIKI_WINDOWS
+
+#include <core/Windows/PlatformWindows.h>
+
+#else
+
+#error "invalid platform"
+
+#endif
+

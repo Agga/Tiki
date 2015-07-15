@@ -1,5 +1,8 @@
 
 #include <core/Threading/Thread.h>
+#include <core/Threading/Atomic.h>
+#include <core/Assert.h>
+
 #include <Windows.h>
 
 namespace tiki
@@ -8,6 +11,7 @@ namespace tiki
 	{
 		HANDLE m_Handle;
 		u64 m_ThreadId;
+		u8 m_RefCount;
 
 		ThreadProc m_Proc;
 		void* m_Data;
@@ -21,6 +25,12 @@ namespace tiki
 		{
 			Thread::ThreadImpl* thread = reinterpret_cast<Thread::ThreadImpl*>( data );
 			thread->m_Proc( thread->m_Data );
+
+			if( atomicDecrement( thread->m_RefCount ) == 0 )
+			{
+				delete thread;
+			}
+
 			return 0;
 		}
 	}
@@ -33,16 +43,19 @@ namespace tiki
 
 	Thread::~Thread()
 	{
-		release();
+		// a thread has to be either joined or detached 
+		TIKI_ASSERT( m_Impl == nullptr );
 	}
 
 	bool Thread::create(ThreadProc proc, void* data)
 	{
-		release();
+		TIKI_ASSERT( m_Impl == nullptr );
+		TIKI_ASSERT( proc != nullptr );
 
 		ThreadImpl* thread = new ThreadImpl();
 		thread->m_Proc = proc;
 		thread->m_Data = data;
+		thread->m_RefCount = 2;
 
 		thread->m_Handle = CreateThread( nullptr, 0, detail::threadEntry,
 			thread, 0, (LPDWORD)&thread->m_ThreadId );
@@ -57,17 +70,7 @@ namespace tiki
 		return true;
 	}
 
-	void Thread::release()
-	{
-		if( m_Impl )
-		{
-			join();
-			delete m_Impl;
-			m_Impl = nullptr;
-		}
-	}
-
-	bool Thread::join() const
+	bool Thread::join()
 	{
 		if( m_Impl && m_Impl->m_ThreadId != getCurrentThreadId() )
 		{
@@ -77,6 +80,13 @@ namespace tiki
 				if( result == STILL_ACTIVE )
 				{
 					WaitForSingleObject( m_Impl->m_Handle, INFINITE );
+					CloseHandle( m_Impl->m_Handle );
+
+					atomicDecrement( m_Impl->m_RefCount );
+					TIKI_ASSERT( m_Impl->m_RefCount == 0 );
+					
+					delete m_Impl;
+					m_Impl = nullptr;
 				}
 
 				return true;
@@ -85,9 +95,25 @@ namespace tiki
 		return false;
 	}
 
+	bool Thread::detach()
+	{
+		if( m_Impl && m_Impl->m_ThreadId != getCurrentThreadId() )
+		{
+			CloseHandle( m_Impl->m_Handle );
+
+			if( atomicDecrement( m_Impl->m_RefCount ) == 0 )
+			{
+				delete m_Impl;
+			}
+
+			m_Impl = nullptr;
+		}
+		return false;
+	}
+
 	u64 Thread::getCurrentThreadId()
 	{
-		//TODO add static assert for size test
+		static_assert( sizeof(DWORD) <= sizeof(u64), "size missmatch" );
 		return static_cast<u64>( GetCurrentThreadId() );
 	}
 

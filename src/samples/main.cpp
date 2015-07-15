@@ -48,7 +48,7 @@ void testThreadSleep( void* data )
 int main(char* args, int argc)
 {
 	using namespace tiki;
-
+	/*
 	Semaphore sem;
 	sem.obtain();
 
@@ -65,6 +65,7 @@ int main(char* args, int argc)
 	{
 		threads[x].join();
 	}
+	*/
 
 	return 0;
 }

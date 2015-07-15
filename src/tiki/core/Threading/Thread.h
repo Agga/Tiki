@@ -21,15 +21,21 @@ namespace tiki
 			returns true on success
 		 */
 		bool create( ThreadProc proc, void* data );
-		void release();
 
 		/*
-		stalls threadA until the joined threadB terminates
+		stalls threadA until the joined threadB finishes
 			- returns true immediately if joined thread already finished
 			- returns false if threadA and threadB are equal
 			- returns false if thread is not valid	
 		 */
-		bool join() const;
+		bool join();
+
+		/*
+		thread will be executed unto completion
+		after a call to detach a thread is no longer joinable
+		 */
+		bool detach();
+		
 		
 		static void sleep( u64 milliseconds );
 		static u64  getCurrentThreadId();
